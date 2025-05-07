@@ -8,5 +8,5 @@ root.title(configs.window_title)
 root.geometry(configs.window_size)
 
 #button open
-tk.Button(configs.button_open)
+button_open = tk.Button(root,**configs.button_open_text,**configs.button_open_style)
 root.mainloop()
