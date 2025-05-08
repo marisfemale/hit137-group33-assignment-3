@@ -1,6 +1,6 @@
 import tkinter as tk
 import configs as configs
-# print(dir(configs))
+print(dir(configs))
 root = tk.Tk()
 
 # Window format
