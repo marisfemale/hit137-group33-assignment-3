@@ -3,6 +3,10 @@ import tkinter as tk
 window_title = 'Mini Photoshop'
 window_size = '800x600'
 
+resize_min=50
+resize_max = 200
+resize_label = 'resize %'
+
 # Button open images 
 button_open_text = 'Open'
 button_open_style = {
@@ -12,3 +16,5 @@ button_open_style = {
     'padx': 10,
     'pady': 5
 }
+
+button_save_text = 'Save'
