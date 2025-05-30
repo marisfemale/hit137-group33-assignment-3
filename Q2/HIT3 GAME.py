@@ -1,80 +1,59 @@
-
 import pygame
 import random
 import os
 
-#Initialise imported Pygame modules
-pygame.init()
+# Import configurations from configs.py
+from configs import (
+     screen_width, screen_height, fps, window_title,
+    white, black, green, red, blue, yellow, purple,
+    highscore_file,
+    background_paths, medkit_path, extralife_path,
+    level_durations, projectile_types,
+    player_classes,
+    player_width, player_height,
+    enemy_width, enemy_height,
+    projectile_width, projectile_height,
+    font_name, font_size
+)
 
-#Load shooting sound effect
-shoot_sound = pygame.mixer.Sound("assets/sounds/shoot.wav")
+pygame.init() 
+pygame.font.init()
 
-#Screen Configuration
-FPS = 30
-WIDTH, HEIGHT = 640, 480
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+# Create the font once Pygame is initialized
+ui_font = pygame.font.SysFont(font_name, font_size)
 
-#File paths for 3 backgrounds
-background_paths = [
-    "assets/images/background.png",
-    "assets/images/background2.png",
-    "assets/images/background3.png"
-]
-#Load and scale each background image
-
-background_images = [
-    pygame.transform.scale(pygame.image.load(path).convert(), (WIDTH, HEIGHT))
-    for path in background_paths
-]
-#Randomise background to display
-background_img = random.choice(background_images)
-
-#Load and scale medkit and extra life image
-medkit_img = pygame.image.load("assets/images/medkit.png").convert_alpha()
-medkit_img = pygame.transform.scale(medkit_img, (20, 20))
-
-extralife_img = pygame.image.load("assets/images/extralife.png").convert_alpha()
-extralife_img = pygame.transform.scale(extralife_img, (20, 20))
-
-#Game Settings
-pygame.display.set_caption("Side Scroller Shooter")                                 #Set window title
-difficulty = 'Normal'                                                               #Set game difficulty
-score_bonus = {'Easy': 0, 'Normal': 1, 'Hard': 2}.get(difficulty, 1)                #Adjust score bonus 
+# Screen setup
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption(window_title)
 clock = pygame.time.Clock()
 
-#RGB values
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 200, 0)
-RED = (200, 0, 0)
-BLUE = (0, 0, 200)
-YELLOW = (255, 255, 0)
-PURPLE = (160, 32, 240)
+# Load assets
+shoot_sound = pygame.mixer.Sound("assets/sounds/shoot.wav")
 
-font = pygame.font.SysFont("Arial", 24)                                             #Font for displaying text
-highscore_file = "highscores.txt"                                                   #File to store player scores
+#Load background
+background_images = [
+    pygame.transform.scale(pygame.image.load(path).convert(), (screen_width, screen_height))
+    for path in background_paths
+]
 
-LEVEL_DURATIONS = [30, 45, 60]                                                      #Time in seconds for each level
-PROJECTILE_TYPES = ["Fast", "Strong", "Puncture"]                                   #Projectile types
+background_img = random.choice(background_images)
 
-#Class Stats
-PLAYER_CLASSES = {
-    "Tank": {"speed": 3, "jump": 10, "lives": 3},
-    "Jumper": {"speed": 5, "jump": 15, "lives": 3},
-    "Speedster": {"speed": 7, "jump": 10, "lives": 3},
-}
+medkit_img = pygame.image.load(medkit_path).convert_alpha()
+medkit_img = pygame.transform.scale(medkit_img, (20, 20))
 
-#Sprite and projectile dimensions
-PLAYER_WIDTH, PLAYER_HEIGHT = 112, 128
-ENEMY_WIDTH, ENEMY_HEIGHT = 128, 128
-PROJECTILE_WIDTH, PROJECTILE_HEIGHT = 10, 5
+extralife_img = pygame.image.load(extralife_path).convert_alpha()
+extralife_img = pygame.transform.scale(extralife_img, (20, 20))
+
+# Global game state
+difficulty = 'Normal'
+score_bonus = {'Easy': 0, 'Normal': 1, 'Hard': 2}.get(difficulty, 1)
 
 #Load frames from sprite sheets
-def load_sprite_sheet(path, frame_width, frame_height, num_frames):
+def load_sprite_sheet(path, frame_screen_width, frame_screen_height, num_frames):
     sheet = pygame.image.load(path).convert_alpha()
     frames = []
     for i in range(num_frames):
-        frame = sheet.subsurface(pygame.Rect(i * frame_width, 0, frame_width, frame_height))
+        frame = sheet.subsurface(pygame.Rect(i * frame_screen_width, 0, frame_screen_width, frame_screen_height))
         frames.append(frame)
     return frames
 
@@ -86,23 +65,23 @@ def load_random_zombie_frames():
     walk_path = os.path.join(base_path, "zombie_walk.png")
     death_path = os.path.join(base_path, "zombie_dead.png")
 
-    walk_frames = load_sprite_sheet(walk_path, frame_width=128, frame_height=128, num_frames=10)
-    death_frames = load_sprite_sheet(death_path, frame_width=128, frame_height=128, num_frames=5)
+    walk_frames = load_sprite_sheet(walk_path, frame_screen_width=128, frame_screen_height=128, num_frames=10)
+    death_frames = load_sprite_sheet(death_path, frame_screen_width=128, frame_screen_height=128, num_frames=5)
 
     return walk_frames, death_frames, walk_path
-
+    
 class Player:
 
  #Initialise player attributes and load sprite sheets
     def __init__(self, cls, proj_type):                                                                            
         self.facing_left = False                                                                                    
-        self.rect = pygame.Rect((WIDTH - PLAYER_WIDTH) // 2, HEIGHT - PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT)   
-        self.vx = PLAYER_CLASSES[cls]["speed"]                                                                      
+        self.rect = pygame.Rect((screen_width - player_width) // 2, screen_height - player_height, player_width, player_height)
+        self.vx = player_classes[cls]["speed"]                                                                      
         self.vy = 0
         self.on_ground = True
-        self.jump_strength = PLAYER_CLASSES[cls]["jump"]
+        self.jump_strength = player_classes[cls]["jump"]
         self.hp = 50
-        self.lives = PLAYER_CLASSES[cls]["lives"]
+        self.lives = player_classes[cls]["lives"]
         self.score = 0
         self.class_type = cls
         self.projectile_type = proj_type
@@ -116,7 +95,7 @@ class Player:
         base_path = os.path.join("assets", "images", "spritesheets", cls)
 
         sheet_path = os.path.join(base_path, f"{cls.lower()}_walk.png")
-        self.walk_frames = load_sprite_sheet(sheet_path, frame_width=128, frame_height=128, num_frames=8)
+        self.walk_frames = load_sprite_sheet(sheet_path, frame_screen_width=128, frame_screen_height=128, num_frames=8)
 
         idle_path = os.path.join(base_path, f"{cls.lower()}_idle.png")
         idle_sheet = pygame.image.load(idle_path).convert_alpha()
@@ -132,7 +111,7 @@ class Player:
         if keys[pygame.K_a] and self.rect.left > 0:
             self.rect.x -= self.vx
             self.facing_left = True
-        if keys[pygame.K_d] and self.rect.right < WIDTH:
+        if keys[pygame.K_d] and self.rect.right < screen_width:
             self.rect.x += self.vx
             self.facing_left = False
         if keys[pygame.K_SPACE] and self.on_ground:
@@ -143,8 +122,8 @@ class Player:
     def apply_gravity(self):
         self.vy += 1
         self.rect.y += self.vy
-        if self.rect.bottom >= HEIGHT:
-            self.rect.bottom = HEIGHT
+        if self.rect.bottom >= screen_height:
+            self.rect.bottom = screen_height
             self.on_ground = True
             self.vy = 0
 
@@ -185,7 +164,7 @@ class Projectile:
 
 #Initialise projectile position, speed, damage, direction
     def __init__(self, x, y, speed, damage, puncture=False, direction=1):
-        self.rect = pygame.Rect(x, y, PROJECTILE_WIDTH, PROJECTILE_HEIGHT)
+        self.rect = pygame.Rect(x, y, projectile_width, projectile_height)
         self.speed = speed * direction
         self.damage = damage
         self.puncture = puncture
@@ -198,18 +177,18 @@ class Projectile:
 
 #Draw projectile as a blue rectangle
     def draw(self):
-        pygame.draw.rect(screen, BLUE, self.rect)
+        pygame.draw.rect(screen, blue, self.rect)
 
 class Enemy:
 
 #Random spawn side, load frames, set direction and HP
     def __init__(self, player):
-        self.rect = pygame.Rect(0, HEIGHT - ENEMY_HEIGHT, ENEMY_WIDTH, ENEMY_HEIGHT)
+        self.rect = pygame.Rect(0, screen_height - enemy_height, enemy_width, enemy_height)
 
         if random.choice([True, False]):
             self.rect.x = 0
         else:
-            self.rect.x = WIDTH - ENEMY_WIDTH
+            self.rect.x = screen_width - enemy_width
 
         self.hp = {'Easy': 2, 'Normal': 3, 'Hard': 4}.get(difficulty, 3)
         self.direction = 1 if self.rect.x == 0 else -1
@@ -230,7 +209,7 @@ class Enemy:
 
         zombie_id = walk_path.split(os.sep)[-2]
         death_path = os.path.join("assets", "images", "spritesheets", "Zombie", zombie_id, "zombie_dead.png")
-        self.death_frames = load_sprite_sheet(death_path, frame_width=128, frame_height=128, num_frames=5)
+        self.death_frames = load_sprite_sheet(death_path, frame_screen_width=128, frame_screen_height=128, num_frames=5)
 
 #Update position and animation
     def update(self):
@@ -264,7 +243,7 @@ class Enemy:
         screen.blit(frame, self.rect)
 
         if not self.dying:
-            pygame.draw.rect(screen, GREEN, (self.rect.x, self.rect.y - 5, self.hp * 10, 3))
+            pygame.draw.rect(screen, green, (self.rect.x, self.rect.y - 5, self.hp * 10, 3))
 
 #Load boss, set HP and position
 class Boss(Enemy):
@@ -280,7 +259,7 @@ class Boss(Enemy):
         self.state = "idle"  
         self.facing_left = True
 
-        self.rect = pygame.Rect(WIDTH - ENEMY_WIDTH - 10, HEIGHT - ENEMY_HEIGHT, ENEMY_WIDTH, ENEMY_HEIGHT)
+        self.rect = pygame.Rect(screen_width - enemy_width - 10, screen_height - enemy_height, enemy_width, enemy_height)
         self.hp = 10 + level * 5
         self.cooldown = 60
         self.level = level
@@ -312,12 +291,13 @@ class Boss(Enemy):
         if self.facing_left:
             frame = pygame.transform.flip(frame, True, False)
 
-        screen.blit(frame, self.rect)
+        frame_rect = frame.get_rect(center=self.rect.center)
+        screen.blit(frame, frame_rect)
 
-        bar_width = 100
+        bar_screen_width = 100
         hp_ratio = self.hp / (10 + self.level * 5)
-        pygame.draw.rect(screen, RED, (self.rect.x, self.rect.y - 10, bar_width, 5))
-        pygame.draw.rect(screen, GREEN, (self.rect.x, self.rect.y - 10, int(bar_width * hp_ratio), 5))
+        pygame.draw.rect(screen, red, (self.rect.x, self.rect.y - 10, bar_screen_width, 5))
+        pygame.draw.rect(screen, green, (self.rect.x, self.rect.y - 10, int(bar_screen_width * hp_ratio), 5))
 
 #Update animation frames and state
     def update(self):
@@ -349,7 +329,7 @@ class BossProjectile:
 
 #Draw projectile as a purple cirlce
     def draw(self):
-        pygame.draw.circle(screen, PURPLE, self.rect.center, 5)
+        pygame.draw.circle(screen, purple, self.rect.center, 5)
             
 class Collectible:
 
@@ -358,7 +338,7 @@ class Collectible:
         self.types = [("Health", 30), ("ExtraLife", 5), ("Bonus", 40)]
         pool = [t for t, chance in self.types for _ in range(chance)]
         self.kind = random.choice(pool)
-        self.rect = pygame.Rect(random.randint(100, WIDTH - 100), HEIGHT - 30, 20, 20)
+        self.rect = pygame.Rect(random.randint(100, screen_width - 100), screen_height - 30, 20, 20)
 
 #Apply effect to player
     def apply(self, player):
@@ -376,14 +356,14 @@ class Collectible:
         elif self.kind == "ExtraLife":
             screen.blit(extralife_img, self.rect)
         else:
-            bonus_text = font.render("+1", True, WHITE)
+            bonus_text = ui_font.render("+1", True, white)
             text_rect = bonus_text.get_rect(center=self.rect.center)
             screen.blit(bonus_text, text_rect)
 
 #Draw health bar, score and lives
 def draw_hud(player):
-    pygame.draw.rect(screen, RED, (10, 10, 50, 10))
-    pygame.draw.rect(screen, GREEN, (10, 10, player.hp, 10))
+    pygame.draw.rect(screen, red, (10, 10, 50, 10))
+    pygame.draw.rect(screen, green, (10, 10, player.hp, 10))
     draw_text(f"Score: {player.score}", 70, 5)
     draw_text(f"Lives: {player.lives}", 200, 5)
 
@@ -408,7 +388,7 @@ def handle_projectiles(projectiles, enemies, player, boss):
                     projectiles.remove(proj)
             else:
                 proj.hit_count += 1
-        if proj.rect.x > WIDTH and proj in projectiles:
+        if proj.rect.x > screen_width and proj in projectiles:
             projectiles.remove(proj)
 
 #Update enemies, check death and damage player
@@ -447,16 +427,16 @@ def handle_boss(boss, player, boss_projectiles):
             if bp.rect.colliderect(player.rect):
                 player.hp -= bp.damage
                 boss_projectiles.remove(bp)
-            elif bp.rect.right < 0 or bp.rect.top < 0 or bp.rect.bottom > HEIGHT:
+            elif bp.rect.right < 0 or bp.rect.top < 0 or bp.rect.bottom > screen_height:
                 boss_projectiles.remove(bp)
 
 #Show Game Over or Victory screen
 def end_game(player, win):
-    screen.fill(BLACK)
+    screen.fill(black)
     message = "You Win!" if win else "Game Over"
-    draw_text(message, WIDTH//2 - 50, HEIGHT//2 - 20)
-    draw_text(f"Score: {player.score}", WIDTH//2 - 50, HEIGHT//2 + 10)                  #Save score
-    draw_text("Enter Name (optional):", WIDTH//2 - 80, HEIGHT//2 + 40)                  #Name input
+    draw_text(message, screen_width//2 - 50, screen_height//2 - 20)
+    draw_text(f"Score: {player.score}", screen_width//2 - 50, screen_height//2 + 10)                  #Save score
+    draw_text("Enter Name (optional):", screen_width//2 - 80, screen_height//2 + 40)                  #Name input
     pygame.display.flip()
 
     name = ""
@@ -472,17 +452,17 @@ def end_game(player, win):
                     name = name[:-1]
                 elif len(name) < 10 and event.unicode.isprintable():
                     name += event.unicode
-        screen.fill(BLACK)
-        draw_text(message, WIDTH//2 - 50, HEIGHT//2 - 20)
-        draw_text(f"Score: {player.score}", WIDTH//2 - 50, HEIGHT//2 + 10)
-        draw_text("Enter Name (optional):", WIDTH//2 - 80, HEIGHT//2 + 40)
-        draw_text(name, WIDTH//2 - 50, HEIGHT//2 + 70)
+        screen.fill(black)
+        draw_text(message, screen_width//2 - 50, screen_height//2 - 20)
+        draw_text(f"Score: {player.score}", screen_width//2 - 50, screen_height//2 + 10)
+        draw_text("Enter Name (optional):", screen_width//2 - 80, screen_height//2 + 40)
+        draw_text(name, screen_width//2 - 50, screen_height//2 + 70)
         pygame.display.flip()
-        clock.tick(FPS)
+        clock.tick(fps)
 
     with open(highscore_file, "a") as file:
         file.write(f"{name if name else 'Anonymous'}:{player.score}\n")
-    draw_text("Press Enter to return to Main Menu", WIDTH//2 - 120, HEIGHT//2 + 100)
+    draw_text("Press Enter to return to Main Menu", screen_width//2 - 120, screen_height//2 + 100)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -494,8 +474,8 @@ def end_game(player, win):
 
 #Display highscores.txt and display top 10
 def show_highscores():
-    screen.fill(BLACK)
-    draw_text("Highscores:", WIDTH//2 - 50, 50)
+    screen.fill(black)
+    draw_text("Highscores:", screen_width//2 - 50, 50)
     try:
         with open(highscore_file, "r") as file:
             scores = [line.strip().split(":") for line in file.readlines()]
@@ -503,8 +483,8 @@ def show_highscores():
     except FileNotFoundError:
         scores = []
     for i, (name, score) in enumerate(scores[:10]):
-        draw_text(f"{i+1}. {name}: {score}", WIDTH//2 - 70, 100 + i * 25)
-    draw_text("Press any key to return", WIDTH//2 - 90, HEIGHT - 40)
+        draw_text(f"{i+1}. {name}: {score}", screen_width//2 - 70, 100 + i * 25)
+    draw_text("Press any key to return", screen_width//2 - 90, screen_height - 40)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -513,7 +493,7 @@ def show_highscores():
                 return
             elif event.type == pygame.KEYDOWN:
                 waiting = False
-        clock.tick(FPS)
+        clock.tick(fps)
 
 #Main game loop
 def run_game(player):
@@ -552,85 +532,85 @@ def run_game(player):
         now = pygame.time.get_ticks()                           #Current time in milliseconds
  
 #Spawn new enemies based on difficulty and time passed
-spawn_delay = {'Easy': 6000, 'Normal': 5000, 'Hard': 3000}.get(difficulty, 5000)
-if now - enemy_timer > spawn_delay:
-    enemies.append(Enemy(player))
-    enemy_timer = now
+        spawn_delay = {'Easy': 6000, 'Normal': 5000, 'Hard': 3000}.get(difficulty, 5000)
+        if now - enemy_timer > spawn_delay:
+            enemies.append(Enemy(player))
+            enemy_timer = now
 
 #Handle logic for projectiles, enemies and drawing them
-handle_projectiles(projectiles, enemies, player, boss)
-handle_enemies(enemies, player)
+        handle_projectiles(projectiles, enemies, player, boss)
+        handle_enemies(enemies, player)
 
-for e in enemies:
-    e.draw()
-for p in projectiles:
-    p.draw()
+        for e in enemies:
+            e.draw()
+        for p in projectiles:
+            p.draw()
 
 #Handle boss behavior
-if boss:
-    boss.update()
-    boss.draw()
-    handle_boss(boss, player, boss_projectiles)
-    for bp in boss_projectiles:
-        bp.draw()
+        if boss:
+            boss.update()
+            boss.draw()
+            handle_boss(boss, player, boss_projectiles)
+            for bp in boss_projectiles:
+                bp.draw()
 
 #Spawn boss when level time is up and enemies are cleared
-if (now - level_start) > LEVEL_DURATIONS[level] * 1000 and not boss:
-    if all(e.dying for e in enemies):
-        boss = Boss(level + 1, player)
+        if (now - level_start) > level_durations[level] * 1000 and not boss:
+            if all(e.dying for e in enemies):
+                boss = Boss(level + 1, player)
 
 #If boss is defeated, proceed to next level or end game
-if boss and boss.hp <= 0:
-    player.score += 5 + score_bonus + score_bonus
-    level += 1
-    boss = None
-    boss_projectiles.clear()
-    if level < 3:
-        choice = show_menu(["Continue to next level", "Return to Main Menu"], "Continue or Quit")
-        if choice != "Continue to next level":
-            return
-    level_start = pygame.time.get_ticks()
+        if boss and boss.hp <= 0:
+            player.score += 5 + score_bonus + score_bonus
+            level += 1
+            boss = None
+            boss_projectiles.clear()
+            if level < 3:
+                choice = show_menu(["Continue to next level", "Return to Main Menu"], "Continue or Quit")
+                if choice != "Continue to next level":
+                    return
+            level_start = pygame.time.get_ticks()
 
 #Spawn a collectible with a 30% chance every 10 seconds
-if collect_timer <= 0 and not collectible:
-    if random.randint(1, 100) <= 30:
-        collectible = Collectible()
-    collect_timer = 10000
-collect_timer -= clock.get_time()
+        if collect_timer <= 0 and not collectible:
+            if random.randint(1, 100) <= 30:
+                collectible = Collectible()
+            collect_timer = 10000
+        collect_timer -= clock.get_time()
 
 #Apply collectible effect if collected
-if collectible:
-    collectible.draw()
-    if player.rect.colliderect(collectible.rect):
-        collectible.apply(player)
-        player.score += 1 + score_bonus + score_bonus
-        collectible = None
+        if collectible:
+            collectible.draw()
+            if player.rect.colliderect(collectible.rect):
+                collectible.apply(player)
+                player.score += 1 + score_bonus + score_bonus
+                collectible = None
 
 #Handle player death
-if player.hp <= 0:
-    player.lives -= 1
-    player.hp = 50
-    if player.lives < 0:
-        return end_game(player, False)
+        if player.hp <= 0:
+            player.lives -= 1
+            player.hp = 50
+            if player.lives < 0:
+                return end_game(player, False)
 
 #End game if all levels completed
-if level >= 3:
-    return end_game(player, True)
+        if level >= 3:
+            return end_game(player, True)
 
-pygame.display.flip()
-clock.tick(FPS)                    
+        pygame.display.flip()
+        clock.tick(fps)                    
 
 #Render text on screen at given coordinates
 def draw_text(text, x, y):
-    screen.blit(font.render(text, True, WHITE), (x, y))
+    screen.blit(ui_font.render(text, True, white), (x, y))
 
 #Show a menu with options and return selection
 def show_menu(options, title):
     while True:
-        screen.fill(BLACK)                                                  #Clear screen
-        draw_text(title, WIDTH // 2 - 100, 50)
+        screen.fill(black)                                                  #Clear screen
+        draw_text(title, screen_width // 2 - 100, 50)
         for i, opt in enumerate(options):
-            draw_text(f"{i + 1}. {opt}", WIDTH // 2 - 100, 100 + i * 40)
+            draw_text(f"{i + 1}. {opt}", screen_width // 2 - 100, 100 + i * 40)
         pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -659,12 +639,12 @@ def main():
             score_bonus = {'Easy': 0, 'Normal': 1, 'Hard': 2}.get(difficulty, 1)
             
 #Select player class
-            player_class = show_menu(list(PLAYER_CLASSES.keys()), "Select Class")
+            player_class = show_menu(list(player_classes.keys()), "Select Class")
             if not player_class:
                 continue
 
 #Select projectile type
-            projectile_type = show_menu(PROJECTILE_TYPES, "Select Projectile")
+            projectile_type = show_menu(projectile_types, "Select Projectile")
             if not projectile_type:
                 continue
 

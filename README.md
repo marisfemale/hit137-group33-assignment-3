@@ -39,7 +39,7 @@ This is a simple "Mini Photoshop" desktop application built with Python, Tkinter
 Q1/
 ├── main.py
 ├── configs.py
-└── assets
+└── (assets, if any)
 ```
 
 ## Configuration
