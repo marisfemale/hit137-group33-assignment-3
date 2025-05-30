@@ -64,6 +64,8 @@ label_color         = "white"
 # Save dialog
 save_default_ext    = ".png"
 save_filetypes      = [("PNG files","*.png"),("JPEG files","*.jpg")]
+save_window_title = 'Save'
+save_successful_message = 'Image saved successfully!'
 
 # Canvas dimensions for side-by-side display
 canvas_width        = 800

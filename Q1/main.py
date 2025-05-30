@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 import numpy as np
 import configs
 import cv2
@@ -272,6 +273,7 @@ class MiniPhotoshopApp:
         )
         if path:
             cv2.imwrite(path, cv2.cvtColor(self.current_image, cv2.COLOR_RGB2BGR))
+            messagebox.showinfo(configs.save_window_title, configs.save_successful_message)
 
 if __name__ == "__main__":
     root = tk.Tk()
