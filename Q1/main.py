@@ -9,45 +9,45 @@ class MiniPhotoshopApp:
     def __init__(self, root):
         self.root = root
         self.root.title(configs.window_title)
-        self.root.geometry("1200x800")
+        self.root.geometry(configs.window_geometry)
 
         # Canvas for image display
-        self.canvas = tk.Canvas(self.root, bg='grey')
-        self.canvas.pack(padx=10, pady=10)
+        self.canvas = tk.Canvas(self.root, bg=configs.canvas_bg_color)
+        self.canvas.pack(padx=configs.toolbar_padx, pady=configs.toolbar_pady)
 
         # Button toolbar
         btn_frame = tk.Frame(self.root)
-        btn_frame.pack(padx=10, pady=5, fill=tk.X)
+        btn_frame.pack(padx=configs.canvas_padx, pady=configs.canvas_pady, fill=tk.X)
         self.open_btn = tk.Button(
             btn_frame, text=configs.button_open_text,
             command=self.load_image, **configs.button_open_style
         )
-        self.open_btn.pack(side=tk.LEFT, padx=5)
+        self.open_btn.pack(side=tk.LEFT, padx=configs.button_padx)
 
-        self.crop_btn = tk.Button(btn_frame, text="Crop Image",
+        self.crop_btn = tk.Button(btn_frame, text=configs.button_crop_text,
                                   command=self.enable_crop_mode)
-        self.crop_btn.pack(side=tk.LEFT, padx=5)
+        self.crop_btn.pack(side=tk.LEFT, padx=configs.button_padx)
 
-        self.bw_btn = tk.Button(btn_frame, text="Black & White",
+        self.bw_btn = tk.Button(btn_frame, text=configs.button_bw_text,
                                 command=self.convert_to_bw)
-        self.bw_btn.pack(side=tk.LEFT, padx=5)
+        self.bw_btn.pack(side=tk.LEFT, padx=configs.button_padx)
 
-        self.bg_btn = tk.Button(btn_frame, text="Change Background",
+        self.bg_btn = tk.Button(btn_frame, text=configs.button_bg_text,
                                 command=self.change_background)
-        self.bg_btn.pack(side=tk.LEFT, padx=5)
+        self.bg_btn.pack(side=tk.LEFT, padx=configs.button_padx)
 
         # Resize slider
         slider_frame = tk.Frame(self.root)
-        slider_frame.pack(padx=10, pady=5, fill=tk.X)
+        slider_frame.pack(padx=configs.toolbar_padx, pady=configs.toolbar_pady, fill=tk.X)
         self.resize_slider = tk.Scale(
-            slider_frame, from_=50, to=200, orient=tk.HORIZONTAL,
-            label="Resize %", command=self.resize_image
+            slider_frame, from_=configs.resize_min_pct, to=configs.resize_max_pct, orient=tk.HORIZONTAL,
+            label=configs.resize_label_text, command=self.resize_image
         )
-        self.resize_slider.set(100)
-        self.resize_slider.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
+        self.resize_slider.set(configs.resize_default_pct)
+        self.resize_slider.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=configs.button_padx)
 
         # Save
-        self.save_btn = tk.Button(self.root, text="Save Image",
+        self.save_btn = tk.Button(self.root, text=configs.button_save_text,
                                   command=self.save_image)
         self.save_btn.pack(pady=5)
 
@@ -78,7 +78,7 @@ class MiniPhotoshopApp:
         self.base_image = img.copy()  # Store original for resizing
         self.crop_area = None
         self.crop_mode = False
-        self.resize_slider.set(100)
+        self.resize_slider.set(configs.resize_default_pct)
         self._update_canvas()
 
     def _update_canvas(self):
@@ -119,8 +119,8 @@ class MiniPhotoshopApp:
         self.canvas.create_image(x_off1, y_off1, anchor=tk.NW, image=orig_tk)
         self.canvas.create_image(x_off2, y_off2, anchor=tk.NW, image=curr_tk)
         # Add labels under each image
-        self.canvas.create_text(x_off1 + nw//2, y_off1 + nh + 12, text="Original", font=("Arial", 14, "bold"), fill="white")
-        self.canvas.create_text(x_off2 + nw2//2, y_off2 + nh2 + 12, text="Edited", font=("Arial", 14, "bold"), fill="white")
+        self.canvas.create_text(x_off1 + nw//2, y_off1 + nh + 12, text=configs.original_label_text, font=(configs.label_font), fill=configs.label_color)
+        self.canvas.create_text(x_off2 + nw2//2, y_off2 + nh2 + 12, text=configs.edited_label_text, font=(configs.label_font), fill=configs.label_color)
         # Keep references to avoid garbage collection
         self.tkimg_left = orig_tk
         self.tkimg_right = curr_tk
@@ -135,7 +135,7 @@ class MiniPhotoshopApp:
         x1, y1 = ev.x, ev.y
         self.canvas.delete("crop_rect")
         self.canvas.create_rectangle(x0,y0, x1,y1,
-                                     outline="red", tag="crop_rect")
+                                     outline=configs.crop_rect_color, tag="crop_rect")
 
     def finish_crop(self, ev):
         if not self.crop_mode or not self.crop_start: return
@@ -151,14 +151,14 @@ class MiniPhotoshopApp:
         )
         # Switch button to “Apply Crop”
         self.crop_mode = False
-        self.crop_btn.config(text="Apply Crop", command=self.apply_crop)
+        self.crop_btn.config(text=configs.button_apply_crop_text, command=self.apply_crop)
 
     def enable_crop_mode(self):
         self.crop_mode = True
         self.crop_start = None
         self.crop_area = None
         self.canvas.delete("crop_rect")
-        self.crop_btn.config(text="Crop Image", command=self.finish_crop)
+        self.crop_btn.config(text=configs.button_crop_text, command=self.finish_crop)
 
     def apply_crop(self):
         if not self.crop_area: return
@@ -167,7 +167,7 @@ class MiniPhotoshopApp:
         self.current_image = self.current_image[y0:y1, x0:x1]
         self.crop_area = None
         self.crop_mode = False
-        self.crop_btn.config(text="Crop Image", command=self.enable_crop_mode)
+        self.crop_btn.config(text=configs.button_crop_text, command=self.enable_crop_mode)
         self.resize_slider.set(100)
         self._update_canvas()
 
@@ -194,7 +194,7 @@ class MiniPhotoshopApp:
             return
         gray = cv2.cvtColor(self.current_image, cv2.COLOR_RGB2GRAY)
         self.current_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
-        self.resize_slider.set(100)
+        self.resize_slider.set(configs.resize_default_pct)
         self._update_canvas()
 
     def change_background(self):
@@ -214,8 +214,8 @@ class MiniPhotoshopApp:
         if self.current_image is None:
             return
         p = filedialog.asksaveasfilename(
-            defaultextension=".png",
-            filetypes=[("PNG","*.png"),("JPG","*.jpg")]
+            defaultextension=configs.save_default_ext,
+            filetypes=[configs.save_default_ext]
         )
         if p:
             cv2.imwrite(p,
