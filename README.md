@@ -39,7 +39,7 @@ A simple desktop application built with Python, Tkinter, OpenCV, and Pillow.
 ```bash
 cd Q1
 pip install opencv-python pillow numpy
-python main.py
+python launch.py
 ```
 See [Q1/README.md](Q1/README.md) for full details.
 
@@ -57,7 +57,7 @@ A classic side-scroller shooter game built with Python and Pygame.
 ```bash
 cd Q2
 pip install pygame
-python "HIT3 GAME.py"
+python "main.py"
 ```
 See [Q2/README.md](Q2/README.md) for full details.
 
