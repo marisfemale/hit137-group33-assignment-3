@@ -4,7 +4,7 @@ import os
 
 # Import configurations from configs.py
 from configs import (
-     screen_width, screen_height, fps, window_title,
+    screen_width, screen_height, fps, window_title,
     white, black, green, red, blue, yellow, purple,
     highscore_file,
     background_paths, medkit_path, extralife_path,

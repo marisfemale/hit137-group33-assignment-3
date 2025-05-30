@@ -61,6 +61,8 @@ class MiniPhotoshopApp:
             label=configs.resize_label_text,
             command=self.resize_image
         )
+        self.status_label = tk.Label(self.root, text="Edited size: —×—", font=configs.label_font)
+        self.status_label.pack(pady=(0, configs.button_padx))
         self.resize_slider.set(configs.resize_default_pct)
         self.resize_slider.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=configs.button_padx)
 
@@ -229,12 +231,16 @@ class MiniPhotoshopApp:
     def resize_image(self, val):
         if self.master_image is None:
             return
-        scale = int(val) / 100
-        h, w = self.master_image.shape[:2]
-        resized = cv2.resize(self.master_image, (int(w*scale), int(h*scale)))
-        self.current_image = resized
-        self._update_canvas()
 
+        scale = int(val) / 100
+        h0, w0 = self.master_image.shape[:2]
+        new_w, new_h = int(w0 * scale), int(h0 * scale)
+
+        # update the status label
+        self.status_label.config(text=f"Edited size: {new_w}×{new_h}")
+
+        self.current_image = cv2.resize(self.master_image, (new_w, new_h))
+        self._update_canvas()
     def convert_to_bw(self):
         if self.current_image is None:
             return
