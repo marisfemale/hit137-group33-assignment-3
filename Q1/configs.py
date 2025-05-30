@@ -3,6 +3,7 @@ import tkinter as tk
 window_title = 'Mini Photoshop'
 window_size = '800x600'
 
+#Resize
 resize_min=50
 resize_max = 200
 resize_label = 'resize %'
@@ -65,3 +66,8 @@ save_filetypes      = [("PNG files","*.png"),("JPEG files","*.jpg")]
 # Canvas dimensions for side-by-side display
 canvas_width        = 800
 canvas_height       = 600
+
+#Background
+bg_color = (255,0,0)
+bg_mask_lower = (0,0,0)
+bg_mask_upper = (200,200,200)

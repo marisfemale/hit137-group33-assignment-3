@@ -168,17 +168,10 @@ class MiniPhotoshopApp:
         self.crop_area = None
         self.crop_mode = False
         self.crop_btn.config(text=configs.button_crop_text, command=self.enable_crop_mode)
-        self.resize_slider.set(100)
+        self.resize_slider.set(configs.resize_default_pct)
         self._update_canvas()
 
-    # def resize_image(self, val):
-    #     if self.current_image is None or self.base_image is None:
-    #         return
-    #     scale = int(val)/100
-    #     h, w = self.base_image.shape[:2]
-    #     resized = cv2.resize(self.base_image, (int(w*scale), int(h*scale)))
-    #     self.current_image = resized
-    #     self._update_canvas()
+
     def resize_image(self, val):
         if self.current_image is None:
             return
@@ -200,15 +193,23 @@ class MiniPhotoshopApp:
     def change_background(self):
         if self.current_image is None:
             return
-        h,w,_ = self.current_image.shape
-        bg = np.full((h,w,3), (255,0,0), dtype=np.uint8)
-        mask = cv2.inRange(self.current_image, (0,0,0), (200,200,200))
-        fg = cv2.bitwise_and(self.current_image,
-                             self.current_image, mask=~mask)
+        h, w = self.current_image.shape[:2]
+        bg = np.full((h, w, 3), configs.bg_color, dtype=np.uint8)
+        mask = cv2.inRange(
+            self.current_image,
+            configs.bg_mask_lower,
+            configs.bg_mask_upper
+        )
+        fg = cv2.bitwise_and(
+            self.current_image,
+            self.current_image,
+            mask=~mask
+        )
         bg_part = cv2.bitwise_and(bg, bg, mask=mask)
         self.current_image = cv2.add(fg, bg_part)
-        self.resize_slider.set(100)
+        self.resize_slider.set(configs.resize_default_pct)
         self._update_canvas()
+
 
     def save_image(self):
         if self.current_image is None:
