@@ -19,9 +19,9 @@ background_paths = [
     "assets/images/background.png",
     "assets/images/background2.png",
     "assets/images/background3.png"
-
-#Load and scale each background image
 ]
+#Load and scale each background image
+
 background_images = [
     pygame.transform.scale(pygame.image.load(path).convert(), (WIDTH, HEIGHT))
     for path in background_paths
@@ -552,73 +552,73 @@ def run_game(player):
         now = pygame.time.get_ticks()                           #Current time in milliseconds
  
 #Spawn new enemies based on difficulty and time passed
- spawn_delay = {'Easy': 6000, 'Normal': 5000, 'Hard': 3000}.get(difficulty, 5000)
-        if now - enemy_timer > spawn_delay:
-            enemies.append(Enemy(player))
-            enemy_timer = now
+spawn_delay = {'Easy': 6000, 'Normal': 5000, 'Hard': 3000}.get(difficulty, 5000)
+if now - enemy_timer > spawn_delay:
+    enemies.append(Enemy(player))
+    enemy_timer = now
 
 #Handle logic for projectiles, enemies and drawing them
-        handle_projectiles(projectiles, enemies, player, boss)
-        handle_enemies(enemies, player)
+handle_projectiles(projectiles, enemies, player, boss)
+handle_enemies(enemies, player)
 
-        for e in enemies:
-            e.draw()
-        for p in projectiles:
-            p.draw()
+for e in enemies:
+    e.draw()
+for p in projectiles:
+    p.draw()
 
 #Handle boss behavior
-        if boss:
-            boss.update()
-            boss.draw()
-            handle_boss(boss, player, boss_projectiles)
-            for bp in boss_projectiles:
-                bp.draw()
+if boss:
+    boss.update()
+    boss.draw()
+    handle_boss(boss, player, boss_projectiles)
+    for bp in boss_projectiles:
+        bp.draw()
 
 #Spawn boss when level time is up and enemies are cleared
-        if (now - level_start) > LEVEL_DURATIONS[level] * 1000 and not boss:
-            if all(e.dying for e in enemies):
-                boss = Boss(level + 1, player)
+if (now - level_start) > LEVEL_DURATIONS[level] * 1000 and not boss:
+    if all(e.dying for e in enemies):
+        boss = Boss(level + 1, player)
 
 #If boss is defeated, proceed to next level or end game
-        if boss and boss.hp <= 0:
-            player.score += 5 + score_bonus + score_bonus
-            level += 1
-            boss = None
-            boss_projectiles.clear()
-            if level < 3:
-                choice = show_menu(["Continue to next level", "Return to Main Menu"], "Continue or Quit")
-                if choice != "Continue to next level":
-                    return
-            level_start = pygame.time.get_ticks()
+if boss and boss.hp <= 0:
+    player.score += 5 + score_bonus + score_bonus
+    level += 1
+    boss = None
+    boss_projectiles.clear()
+    if level < 3:
+        choice = show_menu(["Continue to next level", "Return to Main Menu"], "Continue or Quit")
+        if choice != "Continue to next level":
+            return
+    level_start = pygame.time.get_ticks()
 
 #Spawn a collectible with a 30% chance every 10 seconds
-        if collect_timer <= 0 and not collectible:
-            if random.randint(1, 100) <= 30:
-                collectible = Collectible()
-            collect_timer = 10000
-        collect_timer -= clock.get_time()
+if collect_timer <= 0 and not collectible:
+    if random.randint(1, 100) <= 30:
+        collectible = Collectible()
+    collect_timer = 10000
+collect_timer -= clock.get_time()
 
 #Apply collectible effect if collected
-        if collectible:
-            collectible.draw()
-            if player.rect.colliderect(collectible.rect):
-                collectible.apply(player)
-                player.score += 1 + score_bonus + score_bonus
-                collectible = None
+if collectible:
+    collectible.draw()
+    if player.rect.colliderect(collectible.rect):
+        collectible.apply(player)
+        player.score += 1 + score_bonus + score_bonus
+        collectible = None
 
 #Handle player death
-        if player.hp <= 0:
-            player.lives -= 1
-            player.hp = 50
-            if player.lives < 0:
-                return end_game(player, False)
+if player.hp <= 0:
+    player.lives -= 1
+    player.hp = 50
+    if player.lives < 0:
+        return end_game(player, False)
 
 #End game if all levels completed
-        if level >= 3:
-            return end_game(player, True)
+if level >= 3:
+    return end_game(player, True)
 
-        pygame.display.flip()
-        clock.tick(FPS)                    
+pygame.display.flip()
+clock.tick(FPS)                    
 
 #Render text on screen at given coordinates
 def draw_text(text, x, y):
