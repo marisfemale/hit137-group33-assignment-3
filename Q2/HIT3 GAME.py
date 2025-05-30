@@ -1,36 +1,48 @@
+
 import pygame
 import random
 import os
+
+#Initialise imported Pygame modules
 pygame.init()
 
+#Load shooting sound effect
 shoot_sound = pygame.mixer.Sound("assets/sounds/shoot.wav")
 
+#Screen Configuration
 FPS = 30
 WIDTH, HEIGHT = 640, 480
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
+#File paths for 3 backgrounds
 background_paths = [
     "assets/images/background.png",
     "assets/images/background2.png",
     "assets/images/background3.png"
+
+#Load and scale each background image
 ]
 background_images = [
     pygame.transform.scale(pygame.image.load(path).convert(), (WIDTH, HEIGHT))
     for path in background_paths
 ]
+#Randomise background to display
 background_img = random.choice(background_images)
 
+#Load and scale medkit and extra life image
 medkit_img = pygame.image.load("assets/images/medkit.png").convert_alpha()
 medkit_img = pygame.transform.scale(medkit_img, (20, 20))
 
 extralife_img = pygame.image.load("assets/images/extralife.png").convert_alpha()
 extralife_img = pygame.transform.scale(extralife_img, (20, 20))
 
-pygame.display.set_caption("Side Scroller Shooter")
-difficulty = 'Normal'
-score_bonus = {'Easy': 0, 'Normal': 1, 'Hard': 2}.get(difficulty, 1)
+#Game Settings
+pygame.display.set_caption("Side Scroller Shooter")                                 #Set window title
+difficulty = 'Normal'                                                               #Set game difficulty
+score_bonus = {'Easy': 0, 'Normal': 1, 'Hard': 2}.get(difficulty, 1)                #Adjust score bonus 
 clock = pygame.time.Clock()
 
+#RGB values
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 200, 0)
@@ -39,21 +51,25 @@ BLUE = (0, 0, 200)
 YELLOW = (255, 255, 0)
 PURPLE = (160, 32, 240)
 
-font = pygame.font.SysFont("Arial", 24)
-highscore_file = "highscores.txt"
+font = pygame.font.SysFont("Arial", 24)                                             #Font for displaying text
+highscore_file = "highscores.txt"                                                   #File to store player scores
 
-LEVEL_DURATIONS = [30, 45, 60]
-PROJECTILE_TYPES = ["Fast", "Strong", "Puncture"]
+LEVEL_DURATIONS = [30, 45, 60]                                                      #Time in seconds for each level
+PROJECTILE_TYPES = ["Fast", "Strong", "Puncture"]                                   #Projectile types
+
+#Class Stats
 PLAYER_CLASSES = {
     "Tank": {"speed": 3, "jump": 10, "lives": 3},
     "Jumper": {"speed": 5, "jump": 15, "lives": 3},
     "Speedster": {"speed": 7, "jump": 10, "lives": 3},
 }
 
+#Sprite and projectile dimensions
 PLAYER_WIDTH, PLAYER_HEIGHT = 112, 128
 ENEMY_WIDTH, ENEMY_HEIGHT = 128, 128
 PROJECTILE_WIDTH, PROJECTILE_HEIGHT = 10, 5
 
+#Load frames from sprite sheets
 def load_sprite_sheet(path, frame_width, frame_height, num_frames):
     sheet = pygame.image.load(path).convert_alpha()
     frames = []
@@ -61,7 +77,8 @@ def load_sprite_sheet(path, frame_width, frame_height, num_frames):
         frame = sheet.subsurface(pygame.Rect(i * frame_width, 0, frame_width, frame_height))
         frames.append(frame)
     return frames
-    
+
+#Randomly selects a zombie type and loads walk and death frames 
 def load_random_zombie_frames():
     zombie_id = random.choice(["Zombie_1", "Zombie_2", "Zombie_3"])
     base_path = os.path.join("assets", "images", "spritesheets", "Zombie", zombie_id)
@@ -75,10 +92,12 @@ def load_random_zombie_frames():
     return walk_frames, death_frames, walk_path
 
 class Player:
-    def __init__(self, cls, proj_type):
-        self.facing_left = False
-        self.rect = pygame.Rect((WIDTH - PLAYER_WIDTH) // 2, HEIGHT - PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT)
-        self.vx = PLAYER_CLASSES[cls]["speed"]
+
+ #Initialise player attributes and load sprite sheets
+    def __init__(self, cls, proj_type):                                                                            
+        self.facing_left = False                                                                                    
+        self.rect = pygame.Rect((WIDTH - PLAYER_WIDTH) // 2, HEIGHT - PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT)   
+        self.vx = PLAYER_CLASSES[cls]["speed"]                                                                      
         self.vy = 0
         self.on_ground = True
         self.jump_strength = PLAYER_CLASSES[cls]["jump"]
@@ -108,6 +127,7 @@ class Player:
         self.current_frame = 0
         self.frame_timer = 0
 
+#Handle left, right, and jump movement
     def move(self, keys):
         if keys[pygame.K_a] and self.rect.left > 0:
             self.rect.x -= self.vx
@@ -118,7 +138,8 @@ class Player:
         if keys[pygame.K_SPACE] and self.on_ground:
             self.vy = -self.jump_strength
             self.on_ground = False
-
+            
+#Apply gravity and update vertical position
     def apply_gravity(self):
         self.vy += 1
         self.rect.y += self.vy
@@ -127,6 +148,7 @@ class Player:
             self.on_ground = True
             self.vy = 0
 
+#Create a new projectile based on class and direction
     def shoot(self):
         shoot_sound.play()
         speed = 10 if self.projectile_type == "Fast" else 5
@@ -138,6 +160,7 @@ class Player:
 
         return Projectile(x_pos, self.rect.centery, speed, damage, puncture, direction)
 
+#Draw correct animation frame
     def draw(self):
         keys = pygame.key.get_pressed()
         
@@ -159,6 +182,8 @@ class Player:
         screen.blit(frame, self.rect)
 
 class Projectile:
+
+#Initialise projectile position, speed, damage, direction
     def __init__(self, x, y, speed, damage, puncture=False, direction=1):
         self.rect = pygame.Rect(x, y, PROJECTILE_WIDTH, PROJECTILE_HEIGHT)
         self.speed = speed * direction
@@ -167,13 +192,17 @@ class Projectile:
         self.hit_count = 0
         self.direction = direction
 
+#Move projectile
     def update(self):
         self.rect.x += self.speed
 
+#Draw projectile as a blue rectangle
     def draw(self):
         pygame.draw.rect(screen, BLUE, self.rect)
 
 class Enemy:
+
+#Random spawn side, load frames, set direction and HP
     def __init__(self, player):
         self.rect = pygame.Rect(0, HEIGHT - ENEMY_HEIGHT, ENEMY_WIDTH, ENEMY_HEIGHT)
 
@@ -203,6 +232,7 @@ class Enemy:
         death_path = os.path.join("assets", "images", "spritesheets", "Zombie", zombie_id, "zombie_dead.png")
         self.death_frames = load_sprite_sheet(death_path, frame_width=128, frame_height=128, num_frames=5)
 
+#Update position and animation
     def update(self):
         if not self.dying:
             self.rect.x += self.speed * self.direction
@@ -218,6 +248,7 @@ class Enemy:
                 if self.death_frame_index < len(self.death_frames) - 1:
                     self.death_frame_index += 1
 
+#Draw walk or death frame and HP bar
     def draw(self):
         if self.dying:
             if self.death_frame_index < len(self.death_frames):
@@ -235,6 +266,7 @@ class Enemy:
         if not self.dying:
             pygame.draw.rect(screen, GREEN, (self.rect.x, self.rect.y - 5, self.hp * 10, 3))
 
+#Load boss, set HP and position
 class Boss(Enemy):
     def __init__(self, level, player):
         super().__init__(player)
@@ -254,6 +286,7 @@ class Boss(Enemy):
         self.level = level
         self.player = player
 
+#Fires a projectile at player
     def shoot(self, player):
         if self.cooldown <= 0:
             self.cooldown = 60
@@ -267,6 +300,7 @@ class Boss(Enemy):
             return BossProjectile(self.rect.centerx, self.rect.centery, vx, vy, damage=2)
         return None
 
+#Draw idle or shooting frame and HP bar
     def draw(self):
         if self.state == "idle":
             frame = self.idle_frames[self.current_frame % len(self.idle_frames)]
@@ -285,6 +319,7 @@ class Boss(Enemy):
         pygame.draw.rect(screen, RED, (self.rect.x, self.rect.y - 10, bar_width, 5))
         pygame.draw.rect(screen, GREEN, (self.rect.x, self.rect.y - 10, int(bar_width * hp_ratio), 5))
 
+#Update animation frames and state
     def update(self):
         self.frame_timer += 1
         if self.frame_timer >= 6:
@@ -299,26 +334,33 @@ class Boss(Enemy):
                     self.state = "idle"
 
 class BossProjectile:
+
+#Set direction and damage
     def __init__(self, x, y, vx, vy, damage):
         self.rect = pygame.Rect(x, y, 10, 10)
         self.vx = vx
         self.vy = vy
         self.damage = damage
 
+#Move projectile
     def update(self):
         self.rect.x += self.vx
         self.rect.y += self.vy
 
+#Draw projectile as a purple cirlce
     def draw(self):
         pygame.draw.circle(screen, PURPLE, self.rect.center, 5)
             
 class Collectible:
+
+#Randomly choose type and position of collectible
     def __init__(self):
         self.types = [("Health", 30), ("ExtraLife", 5), ("Bonus", 40)]
         pool = [t for t, chance in self.types for _ in range(chance)]
         self.kind = random.choice(pool)
         self.rect = pygame.Rect(random.randint(100, WIDTH - 100), HEIGHT - 30, 20, 20)
 
+#Apply effect to player
     def apply(self, player):
         if self.kind == "Health":
             player.hp = min(50, player.hp + 10)
@@ -327,6 +369,7 @@ class Collectible:
         elif self.kind == "Bonus":
             player.score += 1 + score_bonus
 
+#Draw collectible's respective image or text
     def draw(self):
         if self.kind == "Health":
             screen.blit(medkit_img, self.rect)
@@ -337,12 +380,14 @@ class Collectible:
             text_rect = bonus_text.get_rect(center=self.rect.center)
             screen.blit(bonus_text, text_rect)
 
+#Draw health bar, score and lives
 def draw_hud(player):
     pygame.draw.rect(screen, RED, (10, 10, 50, 10))
     pygame.draw.rect(screen, GREEN, (10, 10, player.hp, 10))
     draw_text(f"Score: {player.score}", 70, 5)
     draw_text(f"Lives: {player.lives}", 200, 5)
 
+#Update and check collision of projectiles
 def handle_projectiles(projectiles, enemies, player, boss):
     for proj in projectiles[:]:
         proj.update()
@@ -366,6 +411,7 @@ def handle_projectiles(projectiles, enemies, player, boss):
         if proj.rect.x > WIDTH and proj in projectiles:
             projectiles.remove(proj)
 
+#Update enemies, check death and damage player
 def handle_enemies(enemies, player):
     remaining = []
     for enemy in enemies:
@@ -388,7 +434,8 @@ def handle_enemies(enemies, player):
             remaining.append(enemy)
 
     enemies[:] = remaining
-    
+
+#Update boss and its projectiles
 def handle_boss(boss, player, boss_projectiles):
     if boss:
         boss.cooldown -= 1
@@ -403,12 +450,13 @@ def handle_boss(boss, player, boss_projectiles):
             elif bp.rect.right < 0 or bp.rect.top < 0 or bp.rect.bottom > HEIGHT:
                 boss_projectiles.remove(bp)
 
+#Show Game Over or Victory screen
 def end_game(player, win):
     screen.fill(BLACK)
     message = "You Win!" if win else "Game Over"
     draw_text(message, WIDTH//2 - 50, HEIGHT//2 - 20)
-    draw_text(f"Score: {player.score}", WIDTH//2 - 50, HEIGHT//2 + 10)
-    draw_text("Enter Name (optional):", WIDTH//2 - 80, HEIGHT//2 + 40)
+    draw_text(f"Score: {player.score}", WIDTH//2 - 50, HEIGHT//2 + 10)                  #Save score
+    draw_text("Enter Name (optional):", WIDTH//2 - 80, HEIGHT//2 + 40)                  #Name input
     pygame.display.flip()
 
     name = ""
@@ -444,6 +492,7 @@ def end_game(player, win):
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                 waiting = False
 
+#Display highscores.txt and display top 10
 def show_highscores():
     screen.fill(BLACK)
     draw_text("Highscores:", WIDTH//2 - 50, 50)
@@ -466,44 +515,49 @@ def show_highscores():
                 waiting = False
         clock.tick(FPS)
 
+#Main game loop
 def run_game(player):
-    level = 0
-    projectiles = []
-    enemies = []
-    boss = None
-    boss_projectiles = []
-    collectible = None
-    collect_timer = 0
-    level_start = pygame.time.get_ticks()
-    background_img = random.choice(background_images)
-    enemy_timer = pygame.time.get_ticks()
-    running = True
+    level = 0                                                   #Current level number
+    projectiles = []                                            #List of active player projectiles
+    enemies = []                                                #List of current enemies
+    boss = None                                                 #Current boss (if any)
+    boss_projectiles = []                                       #Projectiles fired by boss
+    collectible = None                                          #Current collectible item (if any)
+    collect_timer = 0                                           #Timer to control collectible spawn
+    level_start = pygame.time.get_ticks()                       #Timestamp when level started
+    background_img = random.choice(background_images)           #Random background
+    enemy_timer = pygame.time.get_ticks()                       #Timestamp of enemy last spawn
+    running = True                                              #Game loop control flag
 
     while running:
-        screen.blit(background_img, (0, 0))
-        keys = pygame.key.get_pressed()
-        for event in pygame.event.get():
+        screen.blit(background_img, (0, 0))                     #Draw background
+        keys = pygame.key.get_pressed()                         #Get pressed keys
+        for event in pygame.event.get():    
             if event.type == pygame.QUIT:
                 return
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LSHIFT:
+                if event.key == pygame.K_LSHIFT:                #Shoot projectile
                     projectiles.append(player.shoot())
                 elif event.key == pygame.K_ESCAPE:
-                    pause_result = pause_menu()
+                    pause_result = pause_menu()                 #Pause menu
                     if pause_result == "menu":
                         return
 
+#Update and draw player
         player.move(keys)
         player.apply_gravity()
         player.draw()
-        draw_hud(player)
+        draw_hud(player)                                        #Draw HUD (health, score, lives)
 
-        now = pygame.time.get_ticks()
-        spawn_delay = {'Easy': 6000, 'Normal': 5000, 'Hard': 3000}.get(difficulty, 5000)
+        now = pygame.time.get_ticks()                           #Current time in milliseconds
+ 
+#Spawn new enemies based on difficulty and time passed
+ spawn_delay = {'Easy': 6000, 'Normal': 5000, 'Hard': 3000}.get(difficulty, 5000)
         if now - enemy_timer > spawn_delay:
             enemies.append(Enemy(player))
             enemy_timer = now
 
+#Handle logic for projectiles, enemies and drawing them
         handle_projectiles(projectiles, enemies, player, boss)
         handle_enemies(enemies, player)
 
@@ -512,6 +566,7 @@ def run_game(player):
         for p in projectiles:
             p.draw()
 
+#Handle boss behavior
         if boss:
             boss.update()
             boss.draw()
@@ -519,10 +574,12 @@ def run_game(player):
             for bp in boss_projectiles:
                 bp.draw()
 
+#Spawn boss when level time is up and enemies are cleared
         if (now - level_start) > LEVEL_DURATIONS[level] * 1000 and not boss:
             if all(e.dying for e in enemies):
                 boss = Boss(level + 1, player)
 
+#If boss is defeated, proceed to next level or end game
         if boss and boss.hp <= 0:
             player.score += 5 + score_bonus + score_bonus
             level += 1
@@ -534,12 +591,14 @@ def run_game(player):
                     return
             level_start = pygame.time.get_ticks()
 
+#Spawn a collectible with a 30% chance every 10 seconds
         if collect_timer <= 0 and not collectible:
             if random.randint(1, 100) <= 30:
                 collectible = Collectible()
             collect_timer = 10000
         collect_timer -= clock.get_time()
 
+#Apply collectible effect if collected
         if collectible:
             collectible.draw()
             if player.rect.colliderect(collectible.rect):
@@ -547,24 +606,28 @@ def run_game(player):
                 player.score += 1 + score_bonus + score_bonus
                 collectible = None
 
+#Handle player death
         if player.hp <= 0:
             player.lives -= 1
             player.hp = 50
             if player.lives < 0:
                 return end_game(player, False)
 
+#End game if all levels completed
         if level >= 3:
             return end_game(player, True)
 
         pygame.display.flip()
-        clock.tick(FPS)
-        
+        clock.tick(FPS)                    
+
+#Render text on screen at given coordinates
 def draw_text(text, x, y):
     screen.blit(font.render(text, True, WHITE), (x, y))
 
+#Show a menu with options and return selection
 def show_menu(options, title):
     while True:
-        screen.fill(BLACK)
+        screen.fill(BLACK)                                                  #Clear screen
         draw_text(title, WIDTH // 2 - 100, 50)
         for i, opt in enumerate(options):
             draw_text(f"{i + 1}. {opt}", WIDTH // 2 - 100, 100 + i * 40)
@@ -579,6 +642,7 @@ def show_menu(options, title):
                     if index < len(options):
                         return options[index]
 
+#Main menu logic that lets the player start game, veiw highscores, or quit
 def main():
     while True:
         choice = show_menu(["Start Game", "View Highscores", "Quit"], "Main Menu")
@@ -587,19 +651,28 @@ def main():
         elif choice == "View Highscores":
             show_highscores()
         elif choice == "Start Game":
+        
+#Select difficulty
             global difficulty
             difficulty = show_menu(["Easy", "Normal", "Hard"], "Select Difficulty")
             global score_bonus
             score_bonus = {'Easy': 0, 'Normal': 1, 'Hard': 2}.get(difficulty, 1)
+            
+#Select player class
             player_class = show_menu(list(PLAYER_CLASSES.keys()), "Select Class")
             if not player_class:
                 continue
+
+#Select projectile type
             projectile_type = show_menu(PROJECTILE_TYPES, "Select Projectile")
             if not projectile_type:
                 continue
+
+#Start game with selected player configuration
             player = Player(player_class, projectile_type)
             run_game(player)
 
+#Run game is script is executed directly
 if __name__ == "__main__":
     main()
     pygame.quit()
