@@ -16,7 +16,7 @@ This is a classic side-scroller shooter game built with Python and Pygame. The p
 
 - **A / D:** Move left/right
 - **Space:** Jump
-- **Left Shift:** Shoot
+- **Backspace:** Shoot
 - **Esc:** Pause menu
 - **Number Keys (1-9):** Menu selection
 - **Enter:** Confirm menu selection or input

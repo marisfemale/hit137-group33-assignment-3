@@ -28,9 +28,12 @@ background_paths  = [
 ]
 medkit_path       = "assets/images/medkit.png"
 extralife_path    = "assets/images/extralife.png"
+shoot_sound_path = "assets/sounds/shoot.wav"
+
 
 # ========== Gameplay Settings ==========
 difficulty_levels = ["Easy", "Normal", "Hard"]
+default_difficulty = "Normal"
 score_bonus_map   = {'Easy': 0, 'Normal': 1, 'Hard': 2}
 level_durations   = [30, 45, 60]        # seconds per level
 projectile_types  = ["Fast", "Strong", "Puncture"]
