@@ -45,7 +45,7 @@ ENEMY_WIDTH, ENEMY_HEIGHT = 30, 30
 PROJECTILE_WIDTH, PROJECTILE_HEIGHT = 10, 5
 
 def load_sprite_sheet(path, frame_width, frame_height, num_frames):
-    sheet = pygame.image.load("assets/images/spritesheets/Tank/Walk.png).convert_alpha()
+    sheet = pygame.image.load("assets/images/spritesheets/Tank/Walk.png").convert_alpha()
     frames = []
     for i in range(num_frames):
         frame = sheet.subsurface(pygame.Rect(i * frame_width, 0, frame_width, frame_height))

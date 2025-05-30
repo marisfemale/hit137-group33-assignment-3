@@ -42,6 +42,8 @@ resize_min_pct      = 50
 resize_max_pct      = 200
 resize_default_pct  = 100
 resize_label_text   = "Resize %"
+# How many pixels below the image to draw its text label
+label_offset = 12
 
 # Button text & style
 button_open_text    = "Open Image"
