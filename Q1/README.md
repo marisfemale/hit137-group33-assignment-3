@@ -1,6 +1,8 @@
 # Mini Photoshop (Q1)
 
-This is a simple "Mini Photoshop" desktop application built with Python, Tkinter, OpenCV, and Pillow. It allows you to open an image, crop, resize, convert to black & white, change the background, and save the edited result. The app displays the original and edited images side by side for easy comparison.
+A simple desktop image editor built with Python, Tkinter, OpenCV, and Pillow. This app allows you to open, crop, resize, convert to black & white, change the background, and save images. The original and edited images are displayed side by side for easy comparison.
+
+---
 
 ## Features
 
@@ -11,6 +13,8 @@ This is a simple "Mini Photoshop" desktop application built with Python, Tkinter
 - **Change Background:** Replace the background color based on a mask.
 - **Save:** Save the edited image to your computer.
 - **Side-by-Side View:** See the original and edited images together, each labeled.
+
+---
 
 ## How to Run
 
@@ -24,6 +28,8 @@ This is a simple "Mini Photoshop" desktop application built with Python, Tkinter
     python main.py
     ```
 
+---
+
 ## Controls
 
 - **Open:** Click the "Open" button to select an image.
@@ -33,14 +39,26 @@ This is a simple "Mini Photoshop" desktop application built with Python, Tkinter
 - **Change Background:** Click to change the background color.
 - **Save:** Click to save the edited image.
 
+---
+
 ## File Structure
 
 ```
 Q1/
 ├── main.py
 ├── configs.py
-└── assets
+├── processor.py
+├── editor_gui.py
+├── processes/
+│   ├── open.py
+│   ├── crop.py
+│   ├── resize.py
+│   ├── black_white.py
+│   └── bg_change.py
+└── assets/
 ```
+
+---
 
 ## Configuration
 
@@ -51,16 +69,13 @@ All UI labels, colors, and settings are in `configs.py`. You can adjust:
 - Background color and mask for background replacement
 - Slider min/max/default values
 
+---
+
 ## Notes
 
 - The original image is always shown on the left and never modified.
 - The edited image (right) updates with each operation.
 - The app uses OpenCV for image processing and Pillow for Tkinter image display.
-
-## Troubleshooting
-
-- If you see errors about missing modules, ensure you have installed all requirements.
-- If images do not display, check that your image files are valid and supported.
 
 ---
 
